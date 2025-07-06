@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Edit Contact</title>
+  <script src="config.js"></script>
+</head>
+<body onload="getContact()">
+
+  <div id="avatarImage"></div>
+
+  <form id="editForm">
+    <label for="firstname">First Name:</label>
+    <input type="text" id="firstname" name="firstname" readonly><br/>
+
+    <label for="lastname">Last Name:</label>
+    <input type="text" id="lastname" name="lastname" readonly><br/>
+
+    <label for="mobile">Mobile:</label>
+    <input type="text" id="mobile" name="mobile" readonly><br/>
+
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" readonly><br/>
+
+    <label for="avatar" id="avatarLabel" hidden>Change Profile Image</label><br/>
+    <input type="file" name="avatar" id="avatar" hidden><br/><br/>
+
+    <button type="submit" id="submitForm" hidden>Submit</button>
+  </form>
+
+  <br/>
+  <button id="homeLink" type="button">Home</button>
+  <button id="editContact" type="button">Edit</button>
+  <button id="deleteContact" type="button">Delete</button>
+
+  <script>
+    const id = getId();
+    const apikey = localStorage.getItem("apikey");
+    if (!apikey) window.location.href = "enter-api-key.html";
+
+    document.getElementById("homeLink").addEventListener('click', () => {
+      window.location.href = "index.html";
+    });
+
+    document.getElementById("editContact").addEventListener('click', editContact);
+    document.getElementById("editForm").addEventListener('submit', submitForm);
+    document.getElementById("deleteContact").addEventListener('click', deleteContact);
+
+    function getId() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get("id");
+    }
+
+    function getContact() {
+      fetch(`${rootPath}controller/get-contact/?id=${id}`)
+        .then(response => response.json())
+        .then(data => {
+          const contact = data[0];
+          document.getElementById("avatarImage").innerHTML =
+            `<img src="${rootPath}controller/uploads/${contact.avatar}" width="200"/>`;
+          document.getElementById("firstname").value = contact.firstname;
+          document.getElementById("lastname").value = contact.lastname;
+          document.getElementById("mobile").value = contact.mobile;
+          document.getElementById("email").value = contact.email;
+        });
+    }
+
+    function editContact() {
+      ["firstname", "lastname", "mobile", "email"].forEach(id => {
+        document.getElementById(id).readOnly = false;
+      });
+      document.getElementById("avatar").hidden = false;
+      document.getElementById("avatarLabel").hidden = false;
+      document.getElementById("submitForm").hidden = false;
+    }
+
+    function submitForm(e) {
+      e.preventDefault();
+      const form = new FormData(document.getElementById("editForm"));
+      form.append("id", id);
+      form.append("apikey", apikey);
+
+      fetch(`${rootPath}controller/add-contact/`, {
+        method: "POST",
+        body: form
+      })
+        .then(res => res.text())
+        .then(data => {
+          if (data === "1") {
+            alert("Contact updated successfully!");
+            window.location.href = "index.html";
+          } else {
+            alert("Failed to update contact.");
+          }
+        })
+        .catch(err => {
+          alert("Error updating contact.");
+          console.error(err);
+        });
+    }
+
+    function deleteContact() {
+      if (!confirm("Are you sure you want to delete this contact?")) return;
+
+      fetch(`${rootPath}controller/delete-contact/?id=${id}&apikey=${apikey}`)
+        .then(res => res.text())
+        .then(data => {
+          if (data === "1") {
+            alert("Contact deleted.");
+            window.location.href = "index.html";
+          } else {
+            alert("Failed to delete contact.");
+          }
+        })
+        .catch(err => {
+          alert("Error deleting contact.");
+          console.error(err);
+        });
+    }
+  </script>
+</body>
+</html>

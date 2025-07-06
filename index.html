@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Contacts App</title>
+</head>
+<body onload="fetchContacts()">
+
+  <div id="table">contacts loading…</div>
+  <button id="refresh" type="button">Refresh</button>
+  <button id="addcontact" type="button">Add Contact</button>
+
+  <script src="config.js"></script>
+
+  <script>
+    document.getElementById('addcontact').addEventListener('click', addContact);
+    document.getElementById('refresh').addEventListener('click', fetchContacts);
+    document.getElementById('logout').addEventListener('click', logout);
+
+  function fetchContacts() {
+  fetch(`${rootPath}controller/get-contacts/?apikey=${apikey}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.length) {
+        displayOutput(data);
+      } else {
+        document.getElementById("table").innerHTML = "No contacts found.";
+      }
+    })
+    .catch(err => {
+      document.getElementById("table").innerHTML = "Error loading contacts.";
+      console.error(err);
+    });
+}
+
+function displayOutput(data) {
+  let output = `
+    <table border="1">
+      <tr><th>Avatar</th><th>First Name</th><th>Last Name</th></tr>
+  `;
+
+  for (const contact of data) {
+    const avatar = contact.avatar ? contact.avatar : "default.png";
+    output += `
+      <tr>
+        <td><img src="${rootPath}controller/uploads/${avatar}" width="40"></td>
+        <td>${contact.firstname}</td>
+        <td>${contact.lastname}</td>
+      </tr>`;
+  }
+  output += "</table>";
+  document.getElementById("table").innerHTML = output;
+}
+
+ function logout() {
+      localStorage.removeItem("apikey");
+      window.location.href = "enter-api-key.html";
+    }
+
+  </script>
+</body>
+</html>

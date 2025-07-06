@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head> 
+    <meta charset="UTF-8">
+    <title>Enter API Key</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head> 
+  <body>
+    <div>please enter a valid API key.</div>
+    <form>
+        <input type="email" id="api-key" name="apikey"/>
+        <button id="submitApikey">Submit</button>
+    </form>
+
+    <script>
+      
+       document.getElementById("apiForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    const apikey = document.getElementById("api-key").value.trim();
+    if (!apikey) return alert("API key cannot be empty");
+
+    fetch(`${rootPath}controller/api-key/?apikey=${apikey}`)
+      .then(res => res.text())
+      .then(data => {
+        if (data === "1") {
+          localStorage.setItem("apikey", apikey);
+          window.location.href = "index.html";
+        } else {
+          alert("Invalid API Key.");
+        }
+      })
+      .catch(err => alert("Network error."));
+  });
+          
+    </script>
+   </body>
+ </html>
